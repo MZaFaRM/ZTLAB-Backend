@@ -1,56 +1,58 @@
-from fastapi import FastAPI
-from bs4 import BeautifulSoup
-from fastapi.responses import HTMLResponse
-import requests
+from fastapi import FastAPI, Header
+from pydantic import BaseModel
+from src import auth
+from utils.response import CustomResponse
+from src.scrape import common as scrp_cmn
+from src.session import common as sessn_cmn
 
 app = FastAPI()
 
-BASE_URL = "https://kmctce.etlab.app"
+
+class Authentication(BaseModel):
+    username: str
+    password: str
 
 
-def get_name(html_content):
-    soup = BeautifulSoup(html_content, "html.parser")
-    icon_user_tag = soup.find("i", class_="icon-user")
-    if icon_user_tag and icon_user_tag.parent:
-        name_tag = icon_user_tag.parent.find("span", class_="text")
-        if name_tag:
-            return name_tag.get_text()
-    else:
-        return False
+@app.post("/login/")
+def login(authentication: Authentication):
+    try:
+        session = auth.login(authentication.username, authentication.password)
+        session_id = sessn_cmn.save_session(session)
+
+        return CustomResponse(
+            status_code=200, message="Login Successful", data={"session_id": session_id}
+        ).to_dict()
+
+    except Exception as e:
+        return CustomResponse(
+            status_code=400, message="Login Unsuccessful", error=str(e)
+        ).to_dict()
 
 
-def login(username, password, session):
-    print(f"Contacting {BASE_URL}...")
-    login_url = f"{BASE_URL}/user/login"
-    login_payload = {
-        "LoginForm[username]": username,
-        "LoginForm[password]": password,
-    }
-    response = session.post(login_url, data=login_payload)
-    print("Trying to log in...")
-    name = get_name(response.content.decode("utf-8"))
+@app.post("/logout/")
+def logout(session_id: str = Header(None, convert_underscores=False)):
+    try:
+        sessn_cmn.delete_session(session_id)
+        return CustomResponse(status_code=200, message="Logout Successful").to_dict()
 
-    if name:
-        print(f"Login successful...!")
-        print(f"\n\nHello {name.title()}!")
-        return name.title()
-    else:
-        print("Login failed...")
-        print("Check your credentials and try again.")
-        raise ValueError
+    except Exception as e:
+        return CustomResponse(
+            status_code=400, message="Logout Unsuccessful", error=str[e]
+        ).to_dict()
 
 
-@app.get("/")
-def read_root():
-    username = "6424"
-    password = "61982e"
-    session = requests.Session()
-    session.headers.update(
-        {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 \
-            (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36"
-        }
-    )
-    print("\n\nSetting up everything...")
-    name = login(username, password, session)
-    return HTMLResponse(content=f"<h1>Hello {name}!</h1>", status_code=200)
+@app.get("/get-details/")
+def get_details(session_id: str = Header(None, convert_underscores=False)):
+    try:
+        session = sessn_cmn.get_session(session_id)
+        html_page = session.get(auth.BASE_URL).content.decode("utf-8")
+        
+        get_details = scrp_cmn.get_name(html_page)
+        return CustomResponse(
+            status_code=200, message="Details Fetched", data={"name": get_details}
+        ).to_dict()
+
+    except Exception as e:
+        return CustomResponse(
+            status_code=400, message="Details Fetch Unsuccessful", error=str(e)
+        ).to_dict()
