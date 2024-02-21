@@ -54,5 +54,5 @@ def get_attendance(html_content):
 
     return {
         "roll_number": roll_number,
-        "percentage": percentage,
+        "attendance": percentage,
     }
