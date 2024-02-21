@@ -4,6 +4,7 @@ from src import auth
 from utils.response import CustomResponse
 from src.scrape import common as scrp_cmn
 from src.session import common as sessn_cmn
+from src import urls
 
 app = FastAPI()
 
@@ -45,11 +46,17 @@ def logout(session_id: str = Header(None, convert_underscores=False)):
 def get_details(session_id: str = Header(None, convert_underscores=False)):
     try:
         session = sessn_cmn.get_session(session_id)
-        html_page = session.get(auth.BASE_URL).content.decode("utf-8")
         
-        get_details = scrp_cmn.get_name(html_page)
+        html_page = session.get(urls.USER_INFO_URL).content.decode("utf-8")
+        user_details = scrp_cmn.get_details(html_page)
+
+        html_page = session.get(urls.ATTENDANCE_URL).content.decode("utf-8")
+        attendance = scrp_cmn.get_attendance(html_page)
+
+        user_details.update(attendance)
+
         return CustomResponse(
-            status_code=200, message="Details Fetched", data={"name": get_details}
+            status_code=200, message="Details Fetched", data=user_details
         ).to_dict()
 
     except Exception as e:

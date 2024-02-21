@@ -1,8 +1,7 @@
 import requests
 from .scrape import common as cmn
+from .urls import BASE_URL
 
-
-BASE_URL = "https://kmctce.etlab.app"
 
 def login(username, password):
     session = requests.Session()
@@ -22,15 +21,11 @@ def login(username, password):
     }
     response = session.post(login_url, data=login_payload)
     print("Trying to log in...")
-    name = cmn.get_name(response.content.decode("utf-8"))
-
-    if name:
-        print(f"Login successful...!")
+    if name := cmn.get_name(response.content.decode("utf-8")):
+        print("Login successful...!")
         print(f"\n\nHello {name.title()}!")
         return session
     else:
         print("Login failed...")
         print("Check your credentials and try again.")
         raise ValueError
-
-
