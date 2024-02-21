@@ -1,12 +1,19 @@
 from uuid import uuid4
+from collections import OrderedDict
 
-SESSIONS = {}
+MAX_SESSIONS = 10
+SESSIONS = OrderedDict()
 
 
 def save_session(session):
     global SESSIONS
     session_id = str(uuid4())
     SESSIONS[session_id] = session
+    
+    if len(SESSIONS) > MAX_SESSIONS:
+        SESSIONS.popitem(last=False)
+    
+    print(len(SESSIONS))
     return session_id
 
 
