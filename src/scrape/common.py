@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from .constants import BRANCHES, DEPARTMENTS
+from .constants import DEPARTMENTS
 from .. import urls
 
 
@@ -28,16 +28,14 @@ def get_details(html_content):
 
     text = text.replace("Studying in", "").strip()
 
-    branch, department, year = text.split()
-    branch = BRANCHES[branch]
-    department = DEPARTMENTS[department]
+    _, department, year = text.split()
+    department = DEPARTMENTS[department] if department in DEPARTMENTS else department
 
     return {
         "name": name,
         "profile_pic": urls.BASE_URL + img,
-        "branch": branch,
         "department": department,
-        "year": year,
+        "year": int(year),
     }
 
 
@@ -50,9 +48,9 @@ def get_attendance(html_content):
     roll_number = tds[1].text.strip()
 
     # Find the <td> element containing the percentage
-    percentage = tds[-2].text.strip()
+    percentage = tds[-2].text.strip()[:-1]
 
     return {
-        "roll_number": roll_number,
-        "attendance": percentage,
+        "roll_number": int(roll_number),
+        "attendance": int(percentage),
     }

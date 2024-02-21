@@ -1,8 +1,3 @@
-BRANCHES = {
-    "BTECH": "Bachelor of Technology",
-    "MTECH": "Master of Technology",
-}
-
 DEPARTMENTS = {
     "CSE": "Computer Science and Engineering",
     "ME": "Mechanical Engineering",
