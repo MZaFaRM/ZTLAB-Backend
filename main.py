@@ -63,3 +63,19 @@ def get_details(session_id: str = Header(None, convert_underscores=False)):
         return CustomResponse(
             status_code=400, message="Details Fetch Unsuccessful", error=str(e)
         ).to_dict()
+
+@app.get("/get-sidebar/")
+def get_sidebar(session_id: str = Header(None, convert_underscores=False)):
+    try:
+        session = sessn_cmn.get_session(session_id)
+        
+        html_page = session.get(urls.USER_INFO_URL).content.decode("utf-8")
+        user_details = scrp_cmn.get_sidebar_details(html_page)
+        
+        return CustomResponse(
+            status_code=200, message="Details Fetched", data=user_details
+        )
+    except Exception as e:
+        return CustomResponse(
+            status_code=400, message="Details Fetch Unsuccessful", error=str(e)
+        ).to_dict()
