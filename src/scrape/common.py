@@ -78,6 +78,9 @@ def get_sidebar_details(html_content):
         .text.strip()
     )
     sign = urls.BASE_URL + soup.find("img", id="sign")["src"]
+    
+    img_tag = soup.find("img", id="photo")
+    img = img_tag["src"]
 
     return {
         "name": name,
@@ -88,4 +91,5 @@ def get_sidebar_details(html_content):
         "academic_year": academic_year,
         "address": address,
         "sign": sign,
+        "profile_pic": urls.BASE_URL + img,
     }
