@@ -46,7 +46,7 @@ def logout(session_id: str = Header(None, convert_underscores=False)):
 def get_details(session_id: str = Header(None, convert_underscores=False)):
     try:
         session = sessn_cmn.get_session(session_id)
-        
+
         html_page = session.get(urls.USER_INFO_URL).content.decode("utf-8")
         user_details = scrp_cmn.get_details(html_page)
 
@@ -64,18 +64,47 @@ def get_details(session_id: str = Header(None, convert_underscores=False)):
             status_code=400, message="Details Fetch Unsuccessful", error=str(e)
         ).to_dict()
 
+
 @app.get("/get-sidebar/")
 def get_sidebar(session_id: str = Header(None, convert_underscores=False)):
     try:
         session = sessn_cmn.get_session(session_id)
-        
+
         html_page = session.get(urls.USER_INFO_URL).content.decode("utf-8")
         user_details = scrp_cmn.get_sidebar_details(html_page)
-        
+
         return CustomResponse(
             status_code=200, message="Details Fetched", data=user_details
         )
     except Exception as e:
         return CustomResponse(
             status_code=400, message="Details Fetch Unsuccessful", error=str(e)
+        ).to_dict()
+
+
+@app.get("/get-assignments/")
+def get_assignments(session_id: str = Header(None, convert_underscores=False)):
+    try:
+        session = sessn_cmn.get_session(session_id)
+
+        html_page = session.get(urls.RESULTS_URL).content.decode("utf-8")
+        subjects = scrp_cmn.get_subjects(html_page)
+
+        # TODO: Implement get_assignments: get assignments for each subject
+        # assignments = scrp_cmn.get_assignments(html_page, subjects)
+
+        return CustomResponse(
+            status_code=200,
+            message="Assignments Fetched",
+            data=[
+                {
+                    "name": subject, 
+                    "assignments": [None, None, None]
+                }
+                for subject in subjects
+            ],
+        ).to_dict()
+    except Exception as e:
+        return CustomResponse(
+            status_code=400, message="Assignments Fetch Unsuccessful", error=str(e)
         ).to_dict()

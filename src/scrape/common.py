@@ -78,7 +78,7 @@ def get_sidebar_details(html_content):
         .text.strip()
     )
     sign = urls.BASE_URL + soup.find("img", id="sign")["src"]
-    
+
     img_tag = soup.find("img", id="photo")
     img = img_tag["src"]
 
@@ -93,3 +93,19 @@ def get_sidebar_details(html_content):
         "sign": sign,
         "profile_pic": urls.BASE_URL + img,
     }
+
+
+def get_subjects(html_content):
+    soup = BeautifulSoup(html_content, "html.parser")
+    rows = (
+        soup.find(
+            "table", class_="items table table-striped table-bordered table-condensed"
+        )
+        .find("tbody")
+        .find_all("tr")
+    )
+
+    return [row.find_all("td")[1].get_text().strip() for row in rows[:-1]]
+
+def get_assignments(html_content, subjects):
+    soup = BeautifulSoup(html_content, "html.parser")
