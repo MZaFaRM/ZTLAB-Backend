@@ -1,3 +1,4 @@
+import re
 from bs4 import BeautifulSoup
 from .constants import DEPARTMENTS
 from .. import urls
@@ -40,7 +41,7 @@ def get_details(html_content):
     }
 
 
-def get_attendance(html_content):
+def get_total_attendance(html_content):
     soup = BeautifulSoup(html_content, "html.parser").find("tbody").find("tr")
 
     tds = soup.find_all("td")
@@ -107,5 +108,41 @@ def get_subjects(html_content):
 
     return [row.find_all("td")[1].get_text().strip() for row in rows[:-1]]
 
+
 def get_assignments(html_content, subjects):
+    pass
+
+
+def get_subject_attendance(html_content, subjects):
+
     soup = BeautifulSoup(html_content, "html.parser")
+    table = soup.find("table")
+    head = table.find("thead").find("tr")
+    body = table.find("tbody").find("tr")
+
+    pattern = r"\d+/\d+"
+    html_subjects = head.find_all("th", class_="span2")
+    html_attendance = body.find_all("td", class_="span2")
+
+    for subject in html_subjects:
+        if (subject_name := subject.get_text().strip()) in subjects:
+            subject_index = html_subjects.index(subject)
+            attendance = html_attendance[subject_index].get_text().strip()
+
+            match = re.match(pattern, attendance)
+
+            present_classes, total_classes = map(int, match.group().split("/"))
+
+            if "present_classes" in subjects[subject_name]:
+                subjects[subject_name]["duty_leaves"] = abs(
+                    present_classes - subjects[subject_name]["present_classes"]
+                )
+
+            subjects[subject_name].update(
+                {
+                    "present_classes": int(present_classes),
+                    "total_classes": int(total_classes),
+                }
+            )
+
+    return subjects
