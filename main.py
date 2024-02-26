@@ -110,25 +110,27 @@ def get_assignments(session_id: str = Header(None, convert_underscores=False)):
 
 
 @app.get("/get-attendance/")
-def get_attendance(
-    subjects: List[str],
-    session_id: str = Header(None, convert_underscores=False),
-):
+def get_attendance(session_id: str = Header(None, convert_underscores=False)):
     try:
         session = sessn_cmn.get_session(session_id)
 
-        subjects = {subject.split()[0]: {} for subject in subjects}
+        html_page = session.get(urls.RESULTS_URL).content.decode("utf-8")
+        subjects = scrp_cmn.get_subjects(html_page)
+
+        subjects_info = {subject.split()[0]: {} for subject in subjects}
 
         html_page = session.get(urls.ATTENDANCE_URL).content.decode("utf-8")
-        scrp_cmn.get_subject_attendance(html_page, subjects)
+        scrp_cmn.get_subject_attendance(html_page, subjects_info)
 
         html_page = session.get(urls.ATTENDANCE_DUTY_LEAVE_URL).content.decode("utf-8")
-        scrp_cmn.get_subject_attendance(html_page, subjects)
+        scrp_cmn.get_subject_attendance(html_page, subjects_info)
 
-        utils.get_formatted_attendance(subjects)
+        utils.get_formatted_attendance(subjects_info)
+        
+        subjects_info = dict(zip(subjects, subjects_info.values()))
 
         return CustomResponse(
-            status_code=200, message="Attendance Fetched", data=subjects
+            status_code=200, message="Attendance Fetched", data=subjects_info
         ).to_dict()
     except Exception as e:
         return CustomResponse(
