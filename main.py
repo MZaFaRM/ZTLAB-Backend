@@ -117,7 +117,7 @@ def get_attendance(session_id: str = Header(None, convert_underscores=False)):
         html_page = session.get(urls.RESULTS_URL).content.decode("utf-8")
         subjects = scrp_cmn.get_subjects(html_page)
 
-        subjects_info = {subject.split()[0]: {} for subject in subjects}
+        subjects_info = {subject.split()[0]: {"name": subject} for subject in subjects}
 
         html_page = session.get(urls.ATTENDANCE_URL).content.decode("utf-8")
         scrp_cmn.get_subject_attendance(html_page, subjects_info)
@@ -126,11 +126,11 @@ def get_attendance(session_id: str = Header(None, convert_underscores=False)):
         scrp_cmn.get_subject_attendance(html_page, subjects_info)
 
         utils.get_formatted_attendance(subjects_info)
-        
-        subjects_info = dict(zip(subjects, subjects_info.values()))
 
         return CustomResponse(
-            status_code=200, message="Attendance Fetched", data=subjects_info
+            status_code=200,
+            message="Attendance Fetched",
+            data=list(subjects_info.values()),
         ).to_dict()
     except Exception as e:
         return CustomResponse(
