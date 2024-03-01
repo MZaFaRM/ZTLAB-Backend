@@ -1,12 +1,12 @@
-from typing import List
 from fastapi import FastAPI, Header
 from pydantic import BaseModel
 from src import auth
-from utils.response import CustomResponse
+from src.utils.response import CustomResponse
 from src.scrape import common as scrp_cmn
 from src.session import common as sessn_cmn
-from utils import helper as utils
+from src.utils import helper as utils
 from src import urls
+from src.utils.response import CustomResponse, HandleException
 
 app = FastAPI()
 
@@ -27,9 +27,9 @@ def login(authentication: Authentication):
         ).to_dict()
 
     except Exception as e:
-        return CustomResponse(
-            status_code=400, message="Login Unsuccessful", error=str(e)
-        ).to_dict()
+        return HandleException(
+            message="Login Unsuccessful", exception=e
+        ).send_response()
 
 
 @app.post("/logout/")
@@ -62,9 +62,9 @@ def get_details(session_id: str = Header(None, convert_underscores=False)):
         ).to_dict()
 
     except Exception as e:
-        return CustomResponse(
-            status_code=400, message="Details Fetch Unsuccessful", error=str(e)
-        ).to_dict()
+        return HandleException(
+            message="Details Fetch Unsuccessful", exception=e
+        ).send_response()
 
 
 @app.get("/get-sidebar/")
@@ -79,9 +79,9 @@ def get_sidebar(session_id: str = Header(None, convert_underscores=False)):
             status_code=200, message="Details Fetched", data=user_details
         )
     except Exception as e:
-        return CustomResponse(
-            status_code=400, message="Details Fetch Unsuccessful", error=str(e)
-        ).to_dict()
+        return HandleException(
+            message="Details Fetch Unsuccessful", exception=e
+        ).send_response()
 
 
 @app.get("/get-assignments/")
@@ -104,9 +104,9 @@ def get_assignments(session_id: str = Header(None, convert_underscores=False)):
             ],
         ).to_dict()
     except Exception as e:
-        return CustomResponse(
-            status_code=400, message="Assignments Fetch Unsuccessful", error=str(e)
-        ).to_dict()
+        return HandleException(
+            message="Assignments fetch unsuccessful", exception=e
+        ).send_response()
 
 
 @app.get("/get-attendance/")
@@ -133,6 +133,6 @@ def get_attendance(session_id: str = Header(None, convert_underscores=False)):
             data=list(subjects_info.values()),
         ).to_dict()
     except Exception as e:
-        return CustomResponse(
-            status_code=400, message="Attendance Fetch Unsuccessful", error=str(e)
-        ).to_dict()
+        return HandleException(
+            message="Attendance Fetch Unsuccessful", exception=e
+        ).send_response()

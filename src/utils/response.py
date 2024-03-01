@@ -1,4 +1,5 @@
 from fastapi.responses import JSONResponse
+from ..exception import AuthError
 
 
 class CustomResponse:
@@ -17,3 +18,15 @@ class CustomResponse:
                 "errors": self.error,
             },
         )
+
+
+class HandleException:
+    def __init__(self, message: str, exception: Exception) -> None:
+        self.status_code = 401 if isinstance(exception, AuthError) else 400
+        self.message = message
+        self.error = str(exception)
+
+    def send_response(self):
+        return CustomResponse(
+            status_code=self.status_code, message=self.message, error=self.error
+        ).to_dict()

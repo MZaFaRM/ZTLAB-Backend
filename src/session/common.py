@@ -1,5 +1,6 @@
 from uuid import uuid4
 from collections import OrderedDict
+from ..exception import AuthError
 
 MAX_SESSIONS = 10
 SESSIONS = OrderedDict()
@@ -26,5 +27,5 @@ def delete_session(session_id):
 def get_session(session_id):
     global SESSIONS
     if session_id not in SESSIONS:
-        raise ValueError("Invalid auth token. Please login again.")
+        raise AuthError("Invalid auth token. Please login again.")
     return SESSIONS[session_id]
