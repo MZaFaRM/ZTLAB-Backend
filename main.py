@@ -136,3 +136,22 @@ def get_attendance(session_id: str = Header(None, convert_underscores=False)):
         return HandleException(
             message="Attendance Fetch Unsuccessful", exception=e
         ).send_response()
+
+
+@app.get("/get-timetable/{day}/")
+def get_time_table(day: int, session_id: str = Header(None, convert_underscores=False)):
+    try:
+        session = sessn_cmn.get_session(session_id)
+
+        html_page = session.get(urls.TIMETABLE_URL).content.decode("utf-8")
+        time_table = scrp_cmn.get_time_table(html_page, day)
+
+        return CustomResponse(
+            status_code=200,
+            message="Time Table Fetched",
+            data={"day": day, "subjects": list(time_table)},
+        ).to_dict()
+    except Exception as e:
+        return HandleException(
+            message="Time Table Fetch Unsuccessful", exception=e
+        ).send_response()

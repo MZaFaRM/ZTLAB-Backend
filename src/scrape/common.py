@@ -146,3 +146,27 @@ def get_subject_attendance(html_content, subjects):
             )
 
     return subjects
+
+
+def get_time_table(html_content, day):
+    soup = BeautifulSoup(html_content, "html.parser")
+    table = soup.find("table", class_="items table table-striped table-bordered").find(
+        "tbody"
+    )
+    rows = table.find_all("tr")[day]
+
+    classes = rows.find_all("td")[1:]  # removes since it's only the day's name
+
+    for _class in classes:
+        cols = _class.get_text(separator="<br>").strip()
+        data = [line.strip() for line in cols.split("<br>")]
+
+        subject = data[0]
+        subject_type = data[1] if len(data) >= 2 else None
+        professor = data[2] if len(data) >= 3 else None
+
+        yield {
+            "subject_name": subject,
+            "subject_type": subject_type,
+            "professor": professor,
+        }
