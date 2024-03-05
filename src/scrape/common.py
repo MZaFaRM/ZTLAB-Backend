@@ -153,7 +153,7 @@ def get_time_table(html_content, day):
     table = soup.find("table", class_="items table table-striped table-bordered").find(
         "tbody"
     )
-    rows = table.find_all("tr")[day]
+    rows = table.find_all("tr")[day - 1]
 
     classes = rows.find_all("td")[1:]  # removes since it's only the day's name
 
