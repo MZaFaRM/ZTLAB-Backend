@@ -8,6 +8,11 @@ from src.utils import helper as utils
 from src import urls
 from src.utils.response import CustomResponse, HandleException
 
+import requests
+import time
+import threading
+import random
+
 app = FastAPI()
 
 
@@ -155,3 +160,47 @@ def get_time_table(day: int, session_id: str = Header(None, convert_underscores=
         return HandleException(
             message="Time Table Fetch Unsuccessful", exception=e
         ).send_response()
+
+    # define a function to send http request to self at 45 - 1 hour intervals
+    # randomly to keep the server alive
+    # self server url = https://webscrapper-r78p.onrender.com
+
+    # It should run in a separate thread
+
+
+# Function to send HTTP requests at random intervals to keep the server alive
+def keep_server_alive():
+    # server_url = "http://127.0.0.1:8000"
+    server_url = "https://webscrapper-r78p.onrender.com"
+    while True:
+        # Generate a random interval between 45 minutes and 1 hour
+        interval = random.randint(45 * 60, 60 * 60)
+        # interval = random.randint(2, 3)
+        try:
+            # Send HTTP GET request to the server URL
+            index = random.randint(0, 4)
+            request_urls = [
+                f"{server_url}/get-details/",
+                f"{server_url}/get-sidebar/",
+                f"{server_url}/get-assignments/",
+                f"{server_url}/get-attendance/",
+                f"{server_url}/get-timetable/1/",
+            ]
+            response = requests.get(request_urls[index])
+            print(
+                f"HTTP GET request sent to {server_url}, Response: {response.status_code}"
+            )
+        except Exception as e:
+            print(f"Failed to send HTTP GET request: {e}")
+        # Sleep for the random interval
+        time.sleep(interval)
+
+
+# Run the function in a separate thread
+def run_keep_alive_thread():
+    keep_alive_thread = threading.Thread(target=keep_server_alive)
+    keep_alive_thread.start()
+
+
+# Start the keep alive thread
+run_keep_alive_thread()
