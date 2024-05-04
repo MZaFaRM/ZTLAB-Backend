@@ -1,17 +1,11 @@
 from fastapi import FastAPI, Header
 from pydantic import BaseModel
-from src import auth
-from src.utils.response import CustomResponse
+
+from src import auth, urls
 from src.scrape import common as scrp_cmn
 from src.session import common as sessn_cmn
 from src.utils import helper as utils
-from src import urls
 from src.utils.response import CustomResponse, HandleException
-
-import requests
-import time
-import threading
-import random
 
 app = FastAPI()
 
@@ -29,7 +23,7 @@ def login(authentication: Authentication):
 
         return CustomResponse(
             status_code=200, message="Login Successful", data={"session_id": session_id}
-        ).to_dict()
+        ).to_dict()        
 
     except Exception as e:
         return HandleException(
@@ -159,4 +153,80 @@ def get_time_table(day: int, session_id: str = Header(None, convert_underscores=
     except Exception as e:
         return HandleException(
             message="Time Table Fetch Unsuccessful", exception=e
+        ).send_response()
+
+
+@app.get("/get-surveys/")
+def get_surveys(session_id: str = Header(None, convert_underscores=False)):
+    try:
+        session = sessn_cmn.get_session(session_id)
+
+        html_page = session.get(urls.SURVEY_URL).content.decode("utf-8")
+        surveys = scrp_cmn.get_surveys(html_page)
+
+        return CustomResponse(
+            status_code=200, message="Surveys Fetched", data=surveys
+        ).to_dict()
+    except Exception as e:
+        return HandleException(
+            message="Surveys Fetch Unsuccessful", exception=e
+        ).send_response()
+
+
+class SurveyLink(BaseModel):
+    survey_link: str
+
+
+@app.get("/get-forms/")
+def get_forms(
+    survey_link: SurveyLink, session_id: str = Header(None, convert_underscores=False)
+):
+    try:
+        session = sessn_cmn.get_session(session_id)
+        survey_link = survey_link.survey_link
+
+        html_page = session.get(f"{urls.BASE_URL}{survey_link}").content.decode("utf-8")
+        forms = scrp_cmn.get_forms(html_page)
+
+        return CustomResponse(
+            status_code=200, message="Forms Fetched", data=forms
+        ).to_dict()
+    except Exception as e:
+        return HandleException(
+            message="Forms Fetch Unsuccessful", exception=e
+        ).send_response()
+
+
+@app.get("/complete-survey/{survey_id}/")
+def get_survey(
+    survey_id: str, session_id: str = Header(None, convert_underscores=False)
+):
+    try:
+        session = sessn_cmn.get_session(session_id)
+
+        html_page = session.get(f"{urls.SURVEY_URL}/{survey_id}/").content.decode(
+            "utf-8"
+        )
+        survey = scrp_cmn.get_survey(html_page, survey_id)
+
+        return CustomResponse(
+            status_code=200, message="Survey Fetched", data=survey
+        ).to_dict()
+    except Exception as e:
+        return HandleException(
+            message="Survey Fetch Unsuccessful", exception=e
+        ).send_response()
+
+
+@app.get("/get-cookies/")
+def get_cookies(session_id: str = Header(None, convert_underscores=False)):
+    try:
+        return CustomResponse(
+            status_code=200,
+            message="Cookies Fetched",
+            data=sessn_cmn.SESSIONS[session_id],
+        ).to_dict()
+    except Exception as e:
+        return HandleException(
+            message="Cookies Fetch Unsuccessful", exception=e
         ).send_response()

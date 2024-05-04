@@ -170,3 +170,54 @@ def get_time_table(html_content, day):
             "subject_type": subject_type,
             "professor": professor,
         }
+
+
+def get_surveys(html_content):
+    soup = BeautifulSoup(html_content, "html.parser")
+    table = soup.find("tbody")
+
+    rows = table.find_all("tr")
+    surveys = []
+
+    for row in rows:
+        all_data = row.find_all("td")
+        data = {
+            "id": all_data[0].get_text().strip(),
+            "survey": all_data[1].get_text().strip(),
+            "session": all_data[2].get_text().strip(),
+            "start_date": all_data[3].get_text().strip(),
+            "end_date": all_data[4].get_text().strip(),
+            "status": all_data[5].get_text().strip(),
+            "url": link.get("href") if (link := all_data[6].find("a")) else None,
+        }
+        surveys.append(data.copy())
+
+    return surveys
+
+
+def get_forms(html_content):
+    soup = BeautifulSoup(html_content, "html.parser")
+    table = soup.find("tbody")
+
+    rows = table.find_all("tr")
+    forms = []
+
+    for row in rows:
+        all_data = row.find_all("td")
+        form = row.parent
+        button = all_data[4].find("button")
+
+        data = {
+            "id": all_data[0].get_text().strip(),
+            "subject": all_data[1].get_text().strip(),
+            "teacher": all_data[2].get_text().strip(),
+            "status": all_data[3].get_text().strip(),
+            "url": (
+                f"{form['action']}?{button['name']}=clicked"
+                if form and button
+                else None
+            ),
+        }
+        forms.append(data.copy())
+
+    return forms

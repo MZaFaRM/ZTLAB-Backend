@@ -4,3 +4,4 @@ ATTENDANCE_DUTY_LEAVE_URL = f"{BASE_URL}/ktuacademics/student/viewattendancesubj
 ATTENDANCE_URL = f"{BASE_URL}/ktuacademics/student/viewattendancesubject/37"
 RESULTS_URL = f"{BASE_URL}/ktuacademics/student/results?sem_id=62"
 TIMETABLE_URL = f"{BASE_URL}/student/timetable"
+SURVEY_URL = f"{BASE_URL}/survey/user/viewall"
